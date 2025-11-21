@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/youbank
+    username: root
+    password: mysql502
+
+  jpa:
+    database: mysql
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+      format-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        format_sql: true
+        order_updates: true
+        show_sql: true
