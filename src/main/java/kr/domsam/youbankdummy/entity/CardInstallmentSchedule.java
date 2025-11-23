@@ -21,7 +21,7 @@ public class CardInstallmentSchedule {
     /**
      * credit_card_statement 테이블의 외래키
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "card_crd_statement_id", referencedColumnName = "card_crd_statement_id",
             nullable = false,
             foreignKey = @ForeignKey(name = "fk_card_installment_statement"))

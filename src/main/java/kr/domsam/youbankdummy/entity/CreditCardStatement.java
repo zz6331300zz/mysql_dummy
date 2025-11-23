@@ -20,7 +20,7 @@ public class CreditCardStatement {
     /**
      * user_card 테이블의 외래키
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "card_user_id", referencedColumnName = "card_user_id",
             nullable = false,
             foreignKey = @ForeignKey(name = "fk_credit_card_user"))

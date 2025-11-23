@@ -28,11 +28,13 @@ public class CardStatmentDummy extends Dummy {
 
     List<UserCard> userCardList;
     List<Card> cardList;
+    List<CreditCardStatement> crdCardStmList;
 
     @BeforeAll
     void beforeAll() {
         userCardList = userCardRepository.findAll();
         cardList = cardRepository.findAll();
+        crdCardStmList = cardStatementRepository.findAll();
     }
 
     @Test
@@ -42,8 +44,34 @@ public class CardStatmentDummy extends Dummy {
         for( UserCard uc: userCardList){
             if(uc.getCard().getCardTp()==0){
                 insCrdCardStm(uc);
+                insInstmSchd();
             }
         }
+    }
+    void insInstmSchd(){
+        for(CreditCardStatement cs:crdCardStmList){
+            int monthNo = cs.getCardInstallments();
+            if(cs.getCardCrdRefundYn().equals("N")) {
+                for (int i = 1; i <= monthNo; i++) {
+                    CardInstallmentSchedule cis = generateCis(cs,i);
+                    cardInstallmentScheduleRepository.save(cis);
+
+                }
+            }
+
+        }
+        cardInstallmentScheduleRepository.flush();
+    }
+
+    CardInstallmentSchedule generateCis(CreditCardStatement cs,int n){
+        int istmAmt= cs.getCardOgAmt() / cs.getCardInstallments();
+        return CardInstallmentSchedule.builder()
+                .creditCardStatement(cs)
+                .cardMonthNo(n)
+                .cardInstallmentAmt(istmAmt)
+                .cardDueAt(randomDateFuture())
+                .cardScheduleRefundYn("N")
+                .build();
     }
 
     void insCrdCardStm(UserCard uc) {
@@ -73,6 +101,12 @@ public class CardStatmentDummy extends Dummy {
         );
     }
 
+
+    private static LocalDateTime randomDateFuture() {
+        return LocalDateTime.now().plusDays(
+                ThreadLocalRandom.current().nextInt(30, 3000)
+        );
+    }
 
 
     }
