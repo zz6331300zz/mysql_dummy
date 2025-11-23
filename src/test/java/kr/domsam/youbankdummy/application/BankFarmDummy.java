@@ -26,6 +26,8 @@ public class BankFarmDummy extends Dummy {
     UserCardRepository userCardRepository;
     @Autowired
     CreditCardRepository creditCardRepository;
+    @Autowired
+    CheckCardRepository checkCardRepository;
 
     List<Customer2> customerList2;
     List<Account> accountList;
@@ -54,14 +56,28 @@ public class BankFarmDummy extends Dummy {
             userCardRepository.save(uc);
             if(assignedCard.getCardTp()==1) {
                 insCreditCard(uc);
-            }else{
-
+            }else if (assignedCard.getCardTp()==0){
+                insCheckCard(uc);
             }
             empIdx = (empIdx + 1) % employeeList.size();
         }
         userCardRepository.flush();
     }
 
+
+    void insCheckCard(UserCard uc) {
+        Account a = accountList.get(faker.random().nextInt(accountList.size()));
+        CheckCard checkCard = generateCheckCard(uc,a);
+        checkCardRepository.save(checkCard);
+        checkCardRepository.flush();
+    }
+
+    CheckCard generateCheckCard(UserCard uc, Account a) {
+        return CheckCard.builder()
+                .cardUserId(uc.getCardUserId())
+                .account(a)
+                .build();
+    }
 
     void insCreditCard(UserCard uc) {
         CreditCard creditCard = generateCreditCard(uc);

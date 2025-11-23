@@ -146,3 +146,13 @@ CREATE TABLE credit_card (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='신용카드';
 
 
+CREATE TABLE check_card (
+    card_user_id BIGINT NOT NULL COMMENT '카드 ID',
+    card_acct_id BIGINT NOT NULL COMMENT '계좌 ID',
+
+    PRIMARY KEY (card_user_id),
+    CONSTRAINT fk_check_card_user
+        FOREIGN KEY (card_user_id) REFERENCES user_card(card_user_id),
+    CONSTRAINT fk_check_card_account
+        FOREIGN KEY (card_acct_id) REFERENCES account(acct_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='체크카드';
