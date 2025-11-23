@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Customer2 {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cust_id", nullable = false)

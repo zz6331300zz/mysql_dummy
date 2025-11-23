@@ -56,6 +56,7 @@ public class BankFarmDummy extends Dummy {
 
     UserCard generateUserCard(Customer2 customer2,
                               Card card,
+
                               Employees employees) {
         return UserCard.builder()
                 .card(card)
@@ -71,6 +72,7 @@ public class BankFarmDummy extends Dummy {
 
 
     }
+
 
     private static String generateAccountNo() {
         return faker.number().digits(16);

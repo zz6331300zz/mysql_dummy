@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @ToString
 public class BankAccount {
 
+
     @Id
     @Column(name = "BACNT_NO", length = 20, nullable = false)
     private String accountNo;
