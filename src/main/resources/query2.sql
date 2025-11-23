@@ -156,3 +156,34 @@ CREATE TABLE check_card (
     CONSTRAINT fk_check_card_account
         FOREIGN KEY (card_acct_id) REFERENCES account(acct_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='체크카드';
+
+
+CREATE TABLE credit_card_statement (
+    card_crd_statement_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '명세서 ID',
+    card_user_id          BIGINT NOT NULL COMMENT '카드 ID',
+    card_place            VARCHAR(11) NOT NULL COMMENT '사용처',
+    card_crd_refund_yn    CHAR(1) NOT NULL DEFAULT 'N' COMMENT '환불여부 (Y/N)',
+    card_og_amt           INT NOT NULL COMMENT '원금액',
+    card_installments     INT NULL DEFAULT 1 COMMENT '할부기간 (1초과시 할부)',
+    card_trns_dt          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '사용일자',
+    card_refunded_at      DATETIME NULL COMMENT '환불일시',
+
+    PRIMARY KEY (card_crd_statement_id),
+    CONSTRAINT fk_credit_card_user
+        FOREIGN KEY (card_user_id) REFERENCES user_card(card_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='신용카드 명세서 (한 번 결제 시마다 내역)';
+
+
+CREATE TABLE card_installment_schedule (
+    card_installment_schedule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '할부 ID',
+    card_crd_statement_id        BIGINT NOT NULL COMMENT '명세서 ID',
+    card_month_no                INT NOT NULL COMMENT '할부회차',
+    card_installment_amt         INT NOT NULL COMMENT '할부 금액',
+    card_due_at                  DATETIME NOT NULL COMMENT '결제예정일',
+    card_crt_at                  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
+    card_schedule_refund_yn      CHAR(1) NOT NULL DEFAULT 'N' COMMENT '환불여부',
+
+    PRIMARY KEY (card_installment_schedule_id),
+    CONSTRAINT fk_card_installment_statement
+        FOREIGN KEY (card_crd_statement_id) REFERENCES credit_card_statement(card_crd_statement_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='카드 할부 스케줄';

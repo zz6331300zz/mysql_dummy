@@ -20,17 +20,17 @@ public class UserCard {
     private Long cardUserId; // 카드 ID
 
     // 카드상품 (card.card_id)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "card_id", nullable = false)
     private Card card; // 카드상품 ID
 
     // 고객 (customer.cust_id)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cust_id", nullable = false)
     private Customer2 customer2; // 고객 ID
 
     // 직원 (employees.emp_id)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "emp_id", nullable = false)
     private Employees employee; // 직원 ID
 
