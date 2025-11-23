@@ -1,0 +1,27 @@
+package kr.domsam.youbankdummy.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "credit_card")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CreditCard {
+
+    @Id
+    @Column(name = "card_user_id", nullable = false)
+    private Long cardUserId; // 카드 ID / 사용자 ID
+
+    @Column(name = "card_bank_code", length = 5, nullable = false)
+    private String cardBankCode; // 은행코드
+
+    @Column(name = "card_account_id", length = 30, nullable = false)
+    private String cardAccountId; // 실사용 계좌
+
+    @Column(name = "card_due_day", nullable = false)
+    private Byte cardDueDay; // 결제 예정 날짜
+}

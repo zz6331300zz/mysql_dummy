@@ -24,6 +24,8 @@ public class BankFarmDummy extends Dummy {
     EmployeesRepository employeesRepository;
     @Autowired
     UserCardRepository userCardRepository;
+    @Autowired
+    CreditCardRepository creditCardRepository;
 
     List<Customer2> customerList2;
     List<Account> accountList;
@@ -47,16 +49,38 @@ public class BankFarmDummy extends Dummy {
         int cardIdx = 0;
         for(Customer2 c : customerList2) {
             Employees assignedEmp = employeeList.get(empIdx);
-            Card assignedCard = cardList.get(cardIdx);
+            Card assignedCard = cardList.get(faker.random().nextInt(cardList.size()));
             UserCard uc = generateUserCard(c,assignedCard,assignedEmp);
             userCardRepository.save(uc);
+            if(assignedCard.getCardTp()==1) {
+                insCreditCard(uc);
+            }else{
+
+            }
+            empIdx = (empIdx + 1) % employeeList.size();
         }
         userCardRepository.flush();
     }
 
+
+    void insCreditCard(UserCard uc) {
+        CreditCard creditCard = generateCreditCard(uc);
+        creditCardRepository.save(creditCard);
+        creditCardRepository.flush();
+    }
+
+    CreditCard generateCreditCard(UserCard uc) {
+        return CreditCard.builder()
+                .cardUserId(uc.getCardUserId())
+                .cardAccountId(generateAccountNo())
+                .cardDueDay(generateDueDay())
+                .cardBankCode("11111")
+                .build();
+}
+
+
     UserCard generateUserCard(Customer2 customer2,
                               Card card,
-
                               Employees employees) {
         return UserCard.builder()
                 .card(card)
@@ -76,6 +100,10 @@ public class BankFarmDummy extends Dummy {
 
     private static String generateAccountNo() {
         return faker.number().digits(16);
+    }
+
+    private static byte generateDueDay() {
+        return (byte) faker.number().numberBetween(1, 31);
     }
 
     private static LocalDateTime randomDateFuture() {
