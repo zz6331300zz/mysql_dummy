@@ -80,10 +80,12 @@ public class BankAccountDummy extends Dummy {
     @Test
     @Rollback(false)
     void insAddAccount() {
-        final int SIZE = 100_000;
+        final int SIZE = 100;
 
         for(int i=0; i<SIZE; i++) {
-            Customer c = customerList.get(  faker.random().nextInt(customerList.size())  );
+            int randomIndex = (int) (Math.random() * customerList.size());
+            Customer c = customerList.get(randomIndex);
+//            Customer c = customerList.get(  faker.random().nextInt(customerList.size())  );
             BankAccount ba = generateBankAccount(c);
             bankAccountRepository.save(ba);
             System.out.println(ba);
