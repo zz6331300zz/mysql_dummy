@@ -18,7 +18,7 @@ public class Card {
     @Column(name = "card_id", nullable = false)
     private Long cardId; // 신용/체크 카드(상품) ID
 
-    @Column(name = "card_nm", length = 11, nullable = false)
+    @Column(name = "card_nm", length = 30, nullable = false)
     private String cardNm; // 카드명
 
     @Column(name = "card_annual_fee")

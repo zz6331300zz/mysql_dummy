@@ -7,10 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CardStatmentDummy extends Dummy {
@@ -26,32 +31,120 @@ public class CardStatmentDummy extends Dummy {
     @Autowired
     CardInstallmentScheduleRepository cardInstallmentScheduleRepository;
 
+    @Autowired
+    CardBillingRepository cardBillingRepository;
+
     List<UserCard> userCardList;
     List<Card> cardList;
     List<CreditCardStatement> crdCardStmList;
+    List<CardInstallmentSchedule> schedules;
+    List<CardBilling> cardBillingList;
 
     @BeforeAll
     void beforeAll() {
         userCardList = userCardRepository.findAll();
         cardList = cardRepository.findAll();
         crdCardStmList = cardStatementRepository.findAll();
+        schedules = cardInstallmentScheduleRepository.findAll();
+        cardBillingList = cardBillingRepository.findAll();
     }
 
     @Test
     @Rollback(false)
+    @Transactional
     void insOneByOne() {
 
-        for( UserCard uc: userCardList){
-            if(uc.getCard().getCardTp()==0){
-                insCrdCardStm(uc);
-                insInstmSchd();
+//        for( UserCard uc: userCardList){
+//            if(uc.getCard().getCardTp()==0){
+//                insCrdCardStm(uc);
+//                insInstmSchd();
+//            }
+//        }
+        insCardBillingGen();
+        insCardBilling();
+    }
+
+    void insCardBillingGen(){
+        for(CreditCardStatement cs : crdCardStmList){
+            Long cardUserId = cs.getUserCard().getCardUserId();
+            LocalDate billingYm2 = YearMonth.from(cs.getCardTrnsDt()).atDay(1);
+
+            Optional<CardBilling> existingBilling = cardBillingRepository
+                    .findByUserCard_CardUserIdAndCardBillingYearMonth(cardUserId, billingYm2);
+
+            CardBilling billing = existingBilling.orElseGet(() -> {
+
+                CardBilling newBilling = CardBilling.builder()
+                        .userCard(cs.getUserCard())
+                        .cardBillingYearMonth(billingYm2)
+                        .cardInstallmentAmt(0)
+                        .cardNewCharges(0)
+                        .cardTotalDue(0)
+                        .cardPaidAmt(0)
+                        .cardBillingSts("GENER")
+                        .cardDueDate(LocalDateTime.now().plusDays(20))
+                        .build();
+                return cardBillingRepository.save(newBilling);
+            });
+            if (cs.getCardInstallments() == 1) {  // 일시불만
+                billing.setCardNewCharges(billing.getCardNewCharges() + cs.getCardOgAmt());
+                billing.setCardTotalDue(billing.getCardTotalDue() + cs.getCardOgAmt());
+            }
+
+        }
+
+    }
+    @Transactional
+    void insCardBilling() {
+
+        Map<YearMonth, List<CardInstallmentSchedule>> grouped = schedules.stream()
+                .collect(Collectors.groupingBy(s -> YearMonth.from(s.getCardDueAt())));
+
+        for (YearMonth ym : grouped.keySet()) {
+            List<CardInstallmentSchedule> monthSchedules = grouped.get(ym);
+
+            for (CardInstallmentSchedule schedule : monthSchedules) {
+                long cardUserId = schedule.getCreditCardStatement()
+                        .getUserCard()
+                        .getCardUserId();
+
+                LocalDate billingYm = ym.atDay(1);
+
+                Optional<CardBilling> optBilling = cardBillingRepository
+                        .findByUserCard_CardUserIdAndCardBillingYearMonth(cardUserId, billingYm);
+
+                if (optBilling.isPresent()) {
+                    CardBilling billing = optBilling.get();
+                    boolean isBill = (billing.getCardBillingSts().equals("BILLED"));
+
+                    if (!isBill) {
+                        // 3️⃣ 할부금 누적 반영
+                        billing.setCardInstallmentAmt(
+                                billing.getCardInstallmentAmt() + schedule.getCardInstallmentAmt()
+                        );
+
+                        billing.setCardTotalDue(
+                                billing.getCardNewCharges() + billing.getCardInstallmentAmt()
+                        );
+
+                        // 4️⃣ 청구 상태 변경
+                        billing.setCardBillingSts("BILLED");
+                    }
+                    //                cardBillingRepository.flush();
+                }
             }
         }
     }
+
+
+
+
+
     void insInstmSchd(){
         for(CreditCardStatement cs:crdCardStmList){
             int monthNo = cs.getCardInstallments();
             if(cs.getCardCrdRefundYn().equals("N")) {
+                if (cardInstallmentScheduleRepository.existsByCreditCardStatement(cs)) continue;
                 for (int i = 1; i <= monthNo; i++) {
                     CardInstallmentSchedule cis = generateCis(cs,i);
                     cardInstallmentScheduleRepository.save(cis);
@@ -60,16 +153,17 @@ public class CardStatmentDummy extends Dummy {
             }
 
         }
-        cardInstallmentScheduleRepository.flush();
+//        cardInstallmentScheduleRepository.flush();
     }
 
     CardInstallmentSchedule generateCis(CreditCardStatement cs,int n){
         int istmAmt= cs.getCardOgAmt() / cs.getCardInstallments();
+        LocalDateTime trnsDate = cs.getCardTrnsDt();
         return CardInstallmentSchedule.builder()
                 .creditCardStatement(cs)
                 .cardMonthNo(n)
                 .cardInstallmentAmt(istmAmt)
-                .cardDueAt(randomDateFuture())
+                .cardDueAt(trnsDate.plusMonths(n))
                 .cardScheduleRefundYn("N")
                 .build();
     }

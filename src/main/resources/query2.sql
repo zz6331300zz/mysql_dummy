@@ -187,3 +187,25 @@ CREATE TABLE card_installment_schedule (
     CONSTRAINT fk_card_installment_statement
         FOREIGN KEY (card_crd_statement_id) REFERENCES credit_card_statement(card_crd_statement_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='카드 할부 스케줄';
+
+
+
+
+
+
+CREATE TABLE card_billing (
+                              card_billing_id      BIGINT NOT NULL AUTO_INCREMENT COMMENT '청구서 ID',
+                              card_user_id         BIGINT NOT NULL COMMENT '카드 ID',
+                              card_billing_year_month DATE NOT NULL COMMENT '청구연월',
+                              card_installment_amt INT NOT NULL DEFAULT 0 COMMENT '결제할 할부금',
+                              card_new_charges     INT NOT NULL DEFAULT 0 COMMENT '신규사용액',
+                              card_total_due       INT NOT NULL DEFAULT 0 COMMENT '최종 청구액',
+                              card_paid_amt        INT NOT NULL DEFAULT 0 COMMENT '납부한 금액',
+                              card_due_date        DATETIME DEFAULT NULL COMMENT '납부 마감일',
+                              card_billing_sts     VARCHAR(5) NOT NULL COMMENT '청구 상태 (GENERATED / BILLED / PAID / OVERDUE / CLOSED)',
+
+                              PRIMARY KEY (card_billing_id),
+                              CONSTRAINT fk_card_billing_user
+                                  FOREIGN KEY (card_user_id)
+                                      REFERENCES user_card (card_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='월별 청구서';
