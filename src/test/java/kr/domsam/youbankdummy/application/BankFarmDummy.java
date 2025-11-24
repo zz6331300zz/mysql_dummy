@@ -48,8 +48,9 @@ public class BankFarmDummy extends Dummy {
     @Rollback(false)
     void insOneByOne() {
         int empIdx = 0;
-        int cardIdx = 0;
+        int count = 0;
         for(Customer2 c : customerList2) {
+
             Employees assignedEmp = employeeList.get(empIdx);
             Card assignedCard = cardList.get(faker.random().nextInt(cardList.size()));
             UserCard uc = generateUserCard(c,assignedCard,assignedEmp);
@@ -60,6 +61,9 @@ public class BankFarmDummy extends Dummy {
                 insCheckCard(uc);
             }
             empIdx = (empIdx + 1) % employeeList.size();
+
+            count++;
+            if(count>=20000) break;
         }
         userCardRepository.flush();
     }
@@ -88,9 +92,12 @@ public class BankFarmDummy extends Dummy {
     CreditCard generateCreditCard(UserCard uc) {
         return CreditCard.builder()
                 .cardUserId(uc.getCardUserId())
-                .cardAccountId(generateAccountNo())
+                .cardAcctId(generateAccountNo())
                 .cardDueDay(generateDueDay())
-                .cardBankCode("11111")
+                .cardBankCode(faker.options().option("BK001","BK002","BK003","BK004","BK005",
+                        "BK006","BK007","BK008","BK009","BK010",
+                        "BK011","BK012","BK013","BK014","BK015",
+                        "BK016","BK017","BK018","BK019","BK020"))
                 .build();
 }
 
@@ -102,10 +109,10 @@ public class BankFarmDummy extends Dummy {
                 .card(card)
                 .employee(employees)
                 .customer2(customer2)
-                .cardNum(generateAccountNo())
-                .cardSts("ACTIVE")
-                .cardDayLimit(500000)
-                .cardMonthLimit(20000000)
+                .cardNum(generateCardNo())
+                .cardSts(faker.options().option("CD006","CD007","CD008","CD009","CD010"))
+                .cardDayLimit(faker.options().option(300000,500000,1000000,1500000))
+                .cardMonthLimit(faker.options().option(1000000,1500000,2000000,3000000))
                 .cardEdAt(randomDateFuture())
                 .cardDeacAt(null)
                 .build();
@@ -114,9 +121,14 @@ public class BankFarmDummy extends Dummy {
     }
 
 
-    private static String generateAccountNo() {
+    private static String generateCardNo() {
         return faker.number().digits(16);
     }
+
+    private static String generateAccountNo() {
+        return faker.number().digits(14);
+    }
+
 
     private static byte generateDueDay() {
         return (byte) faker.number().numberBetween(1, 31);
